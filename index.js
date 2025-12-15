@@ -278,7 +278,7 @@ app.get("/my-meals", verifyJWT, verifyChef, async (req, res) => {
   }
 });
 
-// Get single meal by ID
+// Get single meal by ID part
 app.get("/meals/:id", async (req, res) => {
   try {
     const id = req.params.id;
