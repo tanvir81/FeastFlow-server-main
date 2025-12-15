@@ -353,7 +353,7 @@ app.post("/meals", verifyJWT, verifyChef, async (req, res) => {
   }
 });
 
-// Update a meal
+// Update a meal section
 app.patch("/meals/:id", verifyJWT, verifyChef, async (req, res) => {
   try {
     const id = req.params.id;
