@@ -260,7 +260,7 @@ app.get("/meals", async (req, res) => {
   }
 });
 
-// Get meals for logged-in chef
+// code Get meals for logged-in chef
 app.get("/my-meals", verifyJWT, verifyChef, async (req, res) => {
   try {
     const db = client.db("feastflow_db");
