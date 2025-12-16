@@ -246,7 +246,7 @@ app.get("/me", verifyJWT, async (req, res) => {
   }
 });
 
-// Meals
+// All Meals
 
 //  get meals
 app.get("/meals", async (req, res) => {
@@ -881,8 +881,49 @@ app.get("/orders", verifyJWT, async (req, res) => {
     const db = client.db("feastflow_db");
     const orders = await db
       .collection("orders")
-      .find({ userUid: req.user.uid })
+      .aggregate([
+        { $match: { userUid: req.user.uid } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "chefId",
+            foreignField: "uid",
+            as: "chefInfo",
+          },
+        },
+        {
+          $unwind: {
+            path: "$chefInfo",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $addFields: {
+            chefName: {
+              $ifNull: ["$chefInfo.name", "Unknown Chef"],
+            },
+            chefUid: {
+              $ifNull: ["$chefInfo.uid", null],
+            },
+          },
+        },
+        {
+          $project: {
+            chefInfo: 0,
+          },
+        },
+      ])
       .toArray();
+
+    // Debug logging
+    console.log("Orders fetched:", orders.length);
+    if (orders.length > 0) {
+      console.log("Sample order:", {
+        chefId: orders[0].chefId,
+        chefName: orders[0].chefName,
+        chefUid: orders[0].chefUid,
+      });
+    }
 
     res.send(orders);
   } catch (error) {
