@@ -820,10 +820,10 @@ app.get("/statistics", verifyJWT, verifyAdmin, async (req, res) => {
     const totalReviews = await db.collection("reviews").countDocuments();
     const ordersPending = await db
       .collection("orders")
-      .countDocuments({ status: "pending" });
+      .countDocuments({ orderStatus: "pending" });
     const ordersDelivered = await db
       .collection("orders")
-      .countDocuments({ status: "delivered" });
+      .countDocuments({ orderStatus: "delivered" });
     const totalPayments = await db
       .collection("payments")
       .aggregate([{ $group: { _id: null, sum: { $sum: "$amount" } } }])
