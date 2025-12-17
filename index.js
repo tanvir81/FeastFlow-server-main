@@ -17,7 +17,7 @@ admin.initializeApp({
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:5174"],
     credentials: true,
   })
 );
@@ -251,8 +251,25 @@ app.get("/me", verifyJWT, async (req, res) => {
 //  get meals
 app.get("/meals", async (req, res) => {
   try {
+    const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit) || 6;
     const db = client.db("feastflow_db");
+
+    // Pagination Mode
+    if (page) {
+      const skip = (page - 1) * limit;
+      const total = await db.collection("meals").countDocuments();
+      const meals = await db
+        .collection("meals")
+        .find({})
+        .skip(skip)
+        .limit(limit)
+        .toArray();
+
+      return res.send({ meals, total });
+    }
+
+    // Default Mode (Backward Compatibility)
     const meals = await db.collection("meals").find({}).limit(limit).toArray();
     res.send(meals);
   } catch (error) {
@@ -680,9 +697,13 @@ app.patch("/requests/:id", verifyJWT, verifyAdmin, async (req, res) => {
     }
 
     //  Update request status
-    await db
+    const updateResult = await db
       .collection("roleRequests")
       .updateOne({ _id: new ObjectId(id) }, { $set: { status } });
+
+    if (updateResult.modifiedCount === 0) {
+        return res.status(400).json({ error: "Failed to update request status or status unchanged" });
+    }
 
     if (status === "approved") {
       // Update user role in MongoDB
