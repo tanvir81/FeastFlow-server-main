@@ -702,7 +702,9 @@ app.patch("/requests/:id", verifyJWT, verifyAdmin, async (req, res) => {
       .updateOne({ _id: new ObjectId(id) }, { $set: { status } });
 
     if (updateResult.modifiedCount === 0) {
-        return res.status(400).json({ error: "Failed to update request status or status unchanged" });
+      return res
+        .status(400)
+        .json({ error: "Failed to update request status or status unchanged" });
     }
 
     if (status === "approved") {
@@ -1135,7 +1137,7 @@ app.post("/create-checkout-session", verifyJWT, async (req, res) => {
   }
 });
 
-// Handle payment success
+// Handle payment success logic
 app.patch("/payment-success", async (req, res) => {
   try {
     const sessionId = req.query.session_id;
