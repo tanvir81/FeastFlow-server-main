@@ -246,7 +246,7 @@ app.get("/me", verifyJWT, async (req, res) => {
   }
 });
 
-// All Meals
+// All Meals set
 
 //  get meals
 app.get("/meals", async (req, res) => {
