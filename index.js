@@ -1048,7 +1048,7 @@ app.patch("/orders/:id", verifyJWT, verifyChef, async (req, res) => {
     res.status(500).send({ message: "Failed to update order status", error });
   }
 });
-// Accept order
+// Accept order patch
 app.patch("/orders/:id/accept", verifyJWT, verifyChef, async (req, res) => {
   try {
     const id = req.params.id;
