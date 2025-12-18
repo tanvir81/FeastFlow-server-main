@@ -33,7 +33,7 @@ const client = new MongoClient(uri, {
   },
 });
 
-// JWT + Roles Middleware
+// JWT + Roles Middleware Stup
 
 const verifyJWT = async (req, res, next) => {
   try {
