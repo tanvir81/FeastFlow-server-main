@@ -10,14 +10,29 @@ const port = process.env.PORT || 3000;
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // Firebase Admin setup
 const admin = require("firebase-admin");
+
+// Fallback to local file for development
+const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+  : require("./firebase-service-account.json");
+
 admin.initializeApp({
-  credential: admin.credential.cert(require("./firebase-service-account.json")),
+  credential: admin.credential.cert(serviceAccount),
 });
 // Middleware
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "https://feastflow-client.web.app",
+      "https://feastflow-client.firebaseapp.com",
+      "https://feastflow-81.web.app",
+      "https://feastflow-81.firebaseapp.com",
+      "https://feast-flow.web.app",
+      "https://feast-flow.firebaseapp.com"
+    ],
     credentials: true,
   })
 );
@@ -113,11 +128,14 @@ const verifyChef = (req, res, next) => {
 
 async function run() {
   try {
+    // Connect to the Atlas cluster
     await client.connect();
-    // await client.db("admin").command({ ping: 1 });
-    console.log("Connected to MongoDB!");
+    // Test the connection
+    await client.db("admin").command({ ping: 1 });
+    console.log("✅ Successfully connected to MongoDB Atlas!");
   } catch (err) {
-    console.error("❌ MongoDB connection failed:", err);
+    console.error("❌ MongoDB connection failed:", err.message);
+    console.error("Connection URI (masked):", uri.replace(process.env.DB_PASS, "****"));
   }
 }
 run().catch(console.dir);
@@ -273,7 +291,12 @@ app.get("/meals", async (req, res) => {
     const meals = await db.collection("meals").find({}).limit(limit).toArray();
     res.send(meals);
   } catch (error) {
-    res.status(500).send({ message: "Failed to fetch meals", error });
+    console.error("GET /meals error:", error.message);
+    res.status(500).send({ 
+      message: "Failed to fetch meals", 
+      error: error.message,
+      stack: process.env.NODE_ENV === "production" ? "🥞" : error.stack 
+    });
   }
 });
 
@@ -1144,7 +1167,12 @@ app.patch("/payment-success", async (req, res) => {
   }
 });
 
-// Listen
-app.listen(port, () => {
-  console.log(` feastflow server running on port ${port}`);
-});
+// Listen - Only run server if not running on Vercel
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log(` feastflow server running on port ${port}`);
+  });
+}
+
+// Export for Vercel
+module.exports = app;
