@@ -114,7 +114,7 @@ const verifyChef = (req, res, next) => {
 async function run() {
   try {
     await client.connect();
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Connected to MongoDB!");
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err);
@@ -947,67 +947,6 @@ app.get("/orders", verifyJWT, async (req, res) => {
         chefUid: orders[0].chefUid,
       });
     }
-
-    res.send(orders);
-  } catch (error) {
-    console.error("Order fetch failed:", error);
-    res.status(500).send({ message: "Failed to fetch orders", error });
-  }
-});
-// Get orders for logged-in chef
-app.get("/chef-orders", verifyJWT, verifyChef, async (req, res) => {
-  try {
-    const db = client.db("feastflow_db");
-    const orders = await db
-      .collection("orders")
-      .find({ chefId: req.user.uid })
-      .toArray();
-    res.send(orders);
-  } catch (error) {
-    res.status(500).send({ message: "Failed to fetch chef orders", error });
-  }
-});
-
-// Orders
-// Create order
-app.post("/orders", verifyJWT, async (req, res) => {
-  try {
-    const { foodId, mealName, price, quantity, chefId, userAddress } = req.body;
-
-    if (!foodId || !mealName || !price || !quantity || !userAddress) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    const db = client.db("feastflow_db");
-    const result = await db.collection("orders").insertOne({
-      foodId,
-      mealName,
-      price,
-      quantity,
-      chefId,
-      userEmail: req.user.email,
-      userUid: req.user.uid,
-      userAddress,
-      paymentStatus: "Pending",
-      orderStatus: "pending",
-      orderTime: new Date(),
-    });
-
-    res.json({ success: true, orderId: result.insertedId });
-  } catch (error) {
-    console.error("Order creation failed:", error);
-    res.status(500).send({ message: "Failed to create order", error });
-  }
-});
-
-// Get orders for logged-in user
-app.get("/orders", verifyJWT, async (req, res) => {
-  try {
-    const db = client.db("feastflow_db");
-    const orders = await db
-      .collection("orders")
-      .find({ userUid: req.user.uid })
-      .toArray();
 
     res.send(orders);
   } catch (error) {
