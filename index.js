@@ -23,16 +23,7 @@ admin.initializeApp({
 app.use(express.json());
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "https://feastflow-client.web.app",
-      "https://feastflow-client.firebaseapp.com",
-      "https://feastflow-81.web.app",
-      "https://feastflow-81.firebaseapp.com",
-      "https://feast-flow.web.app",
-      "https://feast-flow.firebaseapp.com"
-    ],
+    origin: true,
     credentials: true,
   })
 );
